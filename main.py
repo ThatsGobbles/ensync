@@ -3,6 +3,7 @@ import re
 import click
 
 import ensync.discovery as ndis
+import ensync.convert as ncon
 
 
 class RegexPatternType(click.ParamType):
@@ -23,7 +24,7 @@ class RegexPatternType(click.ParamType):
 
 @click.command()
 @click.argument('src-root-dir', type=click.Path(exists=True, file_okay=False, dir_okay=True, resolve_path=True))
-@click.argument('dst-root-dir', type=click.Path(exists=False, file_okay=False, dir_okay=True, resolve_path=True))
+@click.argument('dst-root-dir', type=click.Path(exists=True, file_okay=False, dir_okay=True, resolve_path=True))
 @click.argument('input-regex', type=RegexPatternType())
 @click.option('--album-art-regex', type=RegexPatternType())
 @click.option('--whitelist-dir-file-regex', type=RegexPatternType())
@@ -32,13 +33,14 @@ def cli(src_root_dir, dst_root_dir, input_regex, album_art_regex, whitelist_dir_
     click.echo('Root dir is {}'.format(src_root_dir))
     click.echo('Input regex is {}'.format(input_regex))
     click.echo('Album art regex is {}'.format(album_art_regex))
+    click.echo('Whitelist regex is {}'.format(whitelist_dir_file_regex))
+    click.echo('Blacklist regex is {}'.format(blacklist_dir_file_regex))
 
-    finder = ndis.find_source_files(root_dir=src_root_dir
-                                    , file_name_reg=input_regex
-                                    , album_art_name_reg=album_art_regex
-                                    , whitelist_entry_reg=whitelist_dir_file_regex
-                                    , blacklist_entry_reg=blacklist_dir_file_regex
-                                    )
+    src_records = ndis.find_source_files(root_dir=src_root_dir
+                                         , file_name_reg=input_regex
+                                         , album_art_name_reg=album_art_regex
+                                         , whitelist_entry_reg=whitelist_dir_file_regex
+                                         , blacklist_entry_reg=blacklist_dir_file_regex
+                                         )
 
-    for entry in finder:
-        click.echo(entry)
+    ncon.convert(dst_root_dir, src_records)
